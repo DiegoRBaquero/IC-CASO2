@@ -71,18 +71,22 @@ public class Cliente {
 			if (!line.endsWith("CERTSRV")) {
 				System.out.println("ERROR");
 			} else {
+				
 				System.out.println(line);
 			}
 			double receivedNumber = Double.parseDouble(line.split(":")[0]);
+			String num=line.split(":")[0];
 			byte[] receivedBytes = new byte[520];
 			socket.getInputStream().read(receivedBytes);
+			System.out.println(receivedBytes[519]);
 			try
 	        {
 	            CertificateFactory creador = CertificateFactory.getInstance("X.509");
 	            InputStream in = new ByteArrayInputStream(receivedBytes);
 	            X509Certificate certificadoPuntoAtencion = (X509Certificate)creador.generateCertificate(in);
-	            socket.getOutputStream().write("RTA:OK".getBytes());
-	            socket.getOutputStream().flush();
+	            
+	         
+	            pw.println("RTA:OK");
 	            System.out.println(">> RTA:OK");
 	        }
 	        catch(Exception e)
@@ -93,9 +97,35 @@ public class Cliente {
 	        }
 			line = br.readLine();
 			System.out.println(line);
-			
+			//System.out.println(receivedNumber);
+			double receivedNumber2 = Double.parseDouble(line);
+			if (receivedNumber2!=randomNumber) 
+			{
+				System.out.println("ERROR");
+				 pw.println("RTA:ERROR");
+			} else {
+				
+				System.out.println(line);
+				 pw.println("RTA:OK");
+				 pw.println(num);
+			}
+			line = br.readLine();
+			if (!line.equalsIgnoreCase("RTA:OK")) 
+			{
+				System.out.println("ERROR");
+				
+			} 
+			else 
+			{
+				System.out.println(line);
+				pw.println("INIT");
+				pw.println("ORDENES : 4");
+				pw.println("ORDENES : 4");
+			}
+			line = br.readLine();
+			System.out.println(line);
 			pw.close();
-			br.close();
+	     	br.close();
 			socket.close();
 		} catch (Exception e) {
 			e.printStackTrace();

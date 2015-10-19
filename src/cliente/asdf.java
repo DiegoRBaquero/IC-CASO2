@@ -1,6 +1,7 @@
 package servidor;
 
 import java.awt.FontFormatException;
+
 import java.io.*;
 import java.net.Socket;
 import java.security.KeyPair;
@@ -11,6 +12,29 @@ import utils.Seguridad;
 
 public class Protocolo
 {
+	   public static final boolean SHOW_ERROR = true;
+	    public static final boolean SHOW_S_TRACE = true;
+	    public static final boolean SHOW_IN = true;
+	    public static final boolean SHOW_OUT = true;
+	    public static final String EMPEZAR = "EMPEZAR";
+	    public static final String OK = "OK";
+	    public static final String ALGORITMOS = "ALGORITMOS";
+	    public static final String RSA = "RSA";
+	    public static final String HMACMD5 = "HMACMD5";
+	    public static final String HMACSHA1 = "HMACSHA1";
+	    public static final String HMACSHA256 = "HMACSHA256";
+	    public static final String CERTSRV = "CERTSRV";
+	    public static final String CERTPA = "CERTPA";
+	    public static final String SEPARADOR = ":";
+	    public static final String INFORMAR = "INFORMAR";
+	    public static final String INIT = "INIT";
+	    public static final String RTA = "RTA";
+	    public static final String INFO = "INFO";
+	    public static final String ERROR = "ERROR";
+	    public static final String ERROR_FORMATO = "Error en el formato. Cerrando conexion";
+	    public static final String ERROR_CONFIRMACION = "Error confirmando recepcion de numero cifrado. Cerrando conexion";
+	    public static String num1;
+	    public static String num2;
 
     public Protocolo()
     {
@@ -96,7 +120,8 @@ public class Protocolo
             s.getOutputStream().write(certSer.getEncoded());
             s.getOutputStream().flush();
         }
-        catch(Exception exception) { }
+        catch(Exception exception) 
+        { }
         linea = read(reader);
         if(!linea.split(":")[1].equals("OK"))
             write(writer, (new StringBuilder("Error confirmando recepcion de numero cifrado. Cerrando conexion:")).append(linea).toString());
@@ -193,28 +218,6 @@ public class Protocolo
         catch(Exception exception9) { }
     }
 
-    public static final boolean SHOW_ERROR = true;
-    public static final boolean SHOW_S_TRACE = true;
-    public static final boolean SHOW_IN = true;
-    public static final boolean SHOW_OUT = true;
-    public static final String EMPEZAR = "EMPEZAR";
-    public static final String OK = "OK";
-    public static final String ALGORITMOS = "ALGORITMOS";
-    public static final String RSA = "RSA";
-    public static final String HMACMD5 = "HMACMD5";
-    public static final String HMACSHA1 = "HMACSHA1";
-    public static final String HMACSHA256 = "HMACSHA256";
-    public static final String CERTSRV = "CERTSRV";
-    public static final String CERTPA = "CERTPA";
-    public static final String SEPARADOR = ":";
-    public static final String INFORMAR = "INFORMAR";
-    public static final String INIT = "INIT";
-    public static final String RTA = "RTA";
-    public static final String INFO = "INFO";
-    public static final String ERROR = "ERROR";
-    public static final String ERROR_FORMATO = "Error en el formato. Cerrando conexion";
-    public static final String ERROR_CONFIRMACION = "Error confirmando recepcion de numero cifrado. Cerrando conexion";
-    public static String num1;
-    public static String num2;
+ 
 }
 Privacy Policy
