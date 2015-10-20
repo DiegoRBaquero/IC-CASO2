@@ -9,10 +9,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -23,9 +25,15 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.Mac;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+
+import java.security.Key;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -34,6 +42,8 @@ public class Cliente {
 	PublicKey publicKey;
 	PrivateKey privateKey;
 	KeyPair theKey;
+	PublicKey myPublic;
+	static SecretKeySpec other;
 
 	public Cliente() {
 		Security.addProvider(new BouncyCastleProvider());
@@ -79,6 +89,7 @@ public class Cliente {
 			generator.initialize(1024);
 			KeyPair pair = generator.generateKeyPair();
 			privateKey = pair.getPrivate();
+		    myPublic= pair.getPublic();
 			java.security.cert.X509Certificate cert = Certificado.generateV1Certificate(pair);
 			byte[] mbyte = cert.getEncoded();
 			socket.getOutputStream().write(mbyte);
@@ -128,7 +139,7 @@ public class Cliente {
 				System.out.println(line);
 				pw.println("RTA:OK");
 
-				pw.println(transformar(cifrar(num, privateKey)));
+				pw.println(transformar(cifrar1(num, privateKey)));
 			}
 			line = br.readLine();
 			if (!line.equalsIgnoreCase("RTA:OK")) {
@@ -136,24 +147,29 @@ public class Cliente {
 			} else {
 				System.out.println(line);
 			}
+			System.out.println("anntes");
 			
-			String hashingKey = "1";
+			SecretKeySpec key = new SecretKeySpec(("1").getBytes("UTF-8"), "HMACMD5");
+			System.out.println(key);
+			byte[] bytes = cifrar("1", publicKey);
 			
-			byte[] bytes = cifrar(hashingKey, publicKey);
 			
 			byte[] bytes1 = new byte[117];
 			byte[] bytes2 = new byte[11];
 			
-			for (int i = 0; i < 117; ++i) {
+			for (int i = 0; i < 117; ++i) 
+			{
                 bytes1[i] = bytes[i];
             }
 			for (int i = 0; i < 11; ++i) {
                 bytes2[i] = bytes[i+117];
             }
 			
-			byte[] bytes1c = cifrar(bytes1.toString(), privateKey);
-			byte[] bytes2c = cifrar(bytes2.toString(), privateKey);
 			
+			byte[] bytes1c = cifrar(bytes1, privateKey);
+			System.out.println(bytes1c.length);
+			byte[] bytes2c = cifrar(bytes2, privateKey);
+			System.out.println(bytes2c.length);
 			byte[] bytesc = new byte[256];
 			for (int i = 0; i < 128; ++i) {
                 bytesc[i] = bytes1c[i];
@@ -163,20 +179,34 @@ public class Cliente {
             }
 			
 			pw.println("INIT:" + transformar(bytesc));
+		      
 			
-			String ordenes = "o";
-			
+			String ordenes = "ORDENES:o";
+			System.out.println(cifrar(ordenes,publicKey));
 			pw.println(transformar(cifrar(ordenes, publicKey)));
+			    
 			
-			String hash = HMAC_MD5_encode("nuestra llave", ordenes).toString();
+			 
+		      
+		   // SecretKey sime = new SecretKeySpec(destransformar("1"),"HMACMD5");
+			//String hash= transformar(hmacDigest(destransformar("o"),sime, "HMACMD5"));
 			
-			pw.println(cifrar(hash, publicKey));
+			
+			
+			byte[] x= hmacDigest(destransformar("o"), key,"HMACMD5");
+			String hash2 = "ORDENES:" + transformar(x);
+			
+			pw.println(transformar(cifrar(hash2, publicKey)));
+			
+			
 
 			line = br.readLine();
-			if (!line.equalsIgnoreCase("RTA:OK")) {
+			if (!line.equalsIgnoreCase("RTA:OK"))
+			{
 				System.out.println("ERROR");
 			} else {
 				System.out.println(line);
+				System.out.println("aqui");
 			}
 
 			pw.close();
@@ -213,12 +243,20 @@ public class Cliente {
 		return ret;
 	}
 
-	public byte[] cifrar(String num, PrivateKey key) {
+	public byte[]cifrar(byte[] msg, PrivateKey key) throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException{
+		 Cipher decifrador = Cipher.getInstance("RSA");
+		    decifrador.init(1, key);
+		   
+		    return decifrador.doFinal(msg);
+	}
+	
+	public byte[] cifrar1(String num, PrivateKey key) {
 
 		try {
 			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 			generator.initialize(1024);
 
+			
 			Cipher cipher = Cipher.getInstance("RSA");
 			byte[] clearText = num.getBytes();
 			String s1 = new String(clearText);
@@ -275,4 +313,26 @@ public class Cliente {
 		byte[] rawHmac = mac.doFinal(message.getBytes());
 		return rawHmac;
 	}
+	
+	
+	
+	
+
+	  public static byte[] hmacDigest(byte[] msg, Key key, String algo)
+			    throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException
+			  {
+			    Mac mac = Mac.getInstance(algo);
+			    mac.init(key);
+			    
+			    byte[] bytes = mac.doFinal(msg);
+			    return bytes;
+			  }
+	  
+	
+	  
+	
+			  
+	  
+	
 }
+
