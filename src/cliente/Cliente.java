@@ -112,7 +112,7 @@ public class Cliente {
 			String num = line.split(":")[0];
 			byte[] receivedBytes = new byte[520];
 			socket.getInputStream().read(receivedBytes);
-			System.out.println(receivedBytes[519]);
+			
 			try {
 				CertificateFactory creador = CertificateFactory.getInstance("X.509");
 				InputStream in = new ByteArrayInputStream(receivedBytes);
@@ -147,10 +147,10 @@ public class Cliente {
 			} else {
 				System.out.println(line);
 			}
-			System.out.println("anntes");
+			
 			
 			SecretKeySpec key = new SecretKeySpec(("1").getBytes("UTF-8"), "HMACMD5");
-			System.out.println(key);
+		
 			byte[] bytes = cifrar("1", publicKey);
 			
 			
@@ -181,24 +181,17 @@ public class Cliente {
 			pw.println("INIT:" + transformar(bytesc));
 		      
 			
-			String ordenes = "ORDENES:o";
+			String ordenes = "o";
 			System.out.println(cifrar(ordenes,publicKey));
 			pw.println(transformar(cifrar(ordenes, publicKey)));
-			    
-			
-			 
-		      
-		   // SecretKey sime = new SecretKeySpec(destransformar("1"),"HMACMD5");
-			//String hash= transformar(hmacDigest(destransformar("o"),sime, "HMACMD5"));
 			
 			
-			
-			byte[] x= hmacDigest(destransformar("o"), key,"HMACMD5");
-			String hash2 = "ORDENES:" + transformar(x);
-			
-			pw.println(transformar(cifrar(hash2, publicKey)));
+			byte[] x= hmacDigest("o".getBytes(), key,"HMACMD5");
 			
 			
+			pw.println(transformar(cifrar(x, publicKey)));
+			
+		
 
 			line = br.readLine();
 			if (!line.equalsIgnoreCase("RTA:OK"))
@@ -206,7 +199,7 @@ public class Cliente {
 				System.out.println("ERROR");
 			} else {
 				System.out.println(line);
-				System.out.println("aqui");
+				
 			}
 
 			pw.close();
@@ -249,7 +242,12 @@ public class Cliente {
 		   
 		    return decifrador.doFinal(msg);
 	}
-	
+	public byte[]cifrar(byte[] msg, PublicKey key) throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException{
+		 Cipher decifrador = Cipher.getInstance("RSA");
+		    decifrador.init(1, key);
+		   
+		    return decifrador.doFinal(msg);
+	}
 	public byte[] cifrar1(String num, PrivateKey key) {
 
 		try {
@@ -304,19 +302,8 @@ public class Cliente {
 		return ret;
 	}
 
-	public static byte[] HMAC_MD5_encode(String key, String message) throws Exception {
+	
 
-		SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "HmacMD5");
-
-		Mac mac = Mac.getInstance("HmacMD5");
-		mac.init(keySpec);
-		byte[] rawHmac = mac.doFinal(message.getBytes());
-		return rawHmac;
-	}
-	
-	
-	
-	
 
 	  public static byte[] hmacDigest(byte[] msg, Key key, String algo)
 			    throws NoSuchAlgorithmException, InvalidKeyException, IllegalStateException, UnsupportedEncodingException
@@ -328,7 +315,6 @@ public class Cliente {
 			    return bytes;
 			  }
 	  
-	
 	  
 	
 			  
