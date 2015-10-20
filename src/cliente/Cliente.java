@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
@@ -23,6 +24,8 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -30,8 +33,21 @@ public class Cliente {
 	
 	PublicKey key;
 	PrivateKey privateKey;
+	KeyPair theKey;
 
 	public Cliente() {
+		
+		
+				KeyPairGenerator generator1;
+				try {
+					generator1 = KeyPairGenerator.getInstance("RSA");
+					generator1.initialize(1024);
+					theKey = generator1.generateKeyPair();
+				} catch (NoSuchAlgorithmException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
 		try {
 			Socket socket = new Socket("localhost", 443);
 			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -131,15 +147,23 @@ public class Cliente {
 			else 
 			{
 				System.out.println(line);
+			
+			//String s=transformar(cifrarPublica("a",key));
+			// cifrar(s,privateKey);
+			
+				//pw.println("INIT:"+ llave );
+				
+				//pw.println(transformar(cifrarPublica("ORDENES: 4",key)));
+				
+				
+				//String m="ORDENES :"+ transformar(HMAC_MD5_encode("4444", "4"));
+           //pw.println(cifrarPublica(m,key));
 			}
-				/**pw.println("INIT");
-				pw.println("ORDENES : 4");
-				pw.println("ORDENES : 4");
-			}
-			line = br.readLine();
-			System.out.println(line);
-			*
-			*/
+				
+			
+			//line = br.readLine();
+			//System.out.println(line);
+			
 			pw.close();
 	     	br.close();
 			socket.close();
@@ -204,6 +228,31 @@ public class Cliente {
 
 
 	
+public byte[] cifrarPublica(String num, PublicKey privateKey ) {
+		
+		
+		try {
+		KeyPairGenerator generator =
+		KeyPairGenerator.getInstance("RSA");
+		generator.initialize(1024);
+		
+		Cipher cipher = Cipher.getInstance("RSA");
+		byte [] clearText = num.getBytes();
+		String s1 = new String (clearText);
+		cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+		long startTime = System.nanoTime();
+		byte [] cipheredText = cipher.doFinal(clearText);
+		long endTime = System.nanoTime();
+		System.out.println("clave cifrada: " + cipheredText);
+		return cipheredText;
+		}
+		catch (Exception e) {
+		System.out.println("Excepcion: " + e.getMessage());
+		return null;
+		}
+		}
+
+	
 	public static String transformar( byte[] b )
 	{
 		// Encapsulamiento con hexadecimales
@@ -214,4 +263,19 @@ public class Cliente {
 		}
 		return ret;
 	}
+	
+	
+	
+	   public  static  byte[] HMAC_MD5_encode(String key, String message) throws Exception 
+	    {
+
+	        SecretKeySpec keySpec = new SecretKeySpec(
+	                key.getBytes(),
+	                "HmacMD5");
+
+	        Mac mac = Mac.getInstance("HmacMD5");
+	        mac.init(keySpec);
+	        byte[] rawHmac = mac.doFinal(message.getBytes());
+	          return rawHmac;
+	    }
 }
